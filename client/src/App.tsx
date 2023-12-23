@@ -1,35 +1,55 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useState, useEffect } from "react";
+import axios from "axios";
 
-function App() {
-  const [count, setCount] = useState(0)
+// Custom hook to fetch battery level from the API
+function useBatteryLevel() {
+  const [batteryLevel, setBatteryLevel] = useState(null);
 
-  return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+  useEffect(() => {
+    axios
+      .get("/api/battery")
+      .then((response) => {
+        setBatteryLevel(response.data.batteryLevel);
+      })
+      .catch((error) => {
+        console.error("Failed to fetch battery level:", error);
+      });
+  }, []);
+
+  return batteryLevel;
 }
 
-export default App
+// Component to display the battery level
+function BatteryLevel() {
+  const batteryLevel = useBatteryLevel();
+
+  return (
+    <div className="w-[calc(100%-50px)]">
+      <div className="flex flex-col items-center">
+        <div className="text-2xl leading-7 font-semibold mb-2">
+          {batteryLevel}%
+        </div>
+        <div className="w-full">
+          <div className="relative pt-1">
+            <div className="overflow-hidden h-4 text-xs flex rounded bg-pink-200">
+              <div
+                style={{ width: `${batteryLevel}%` }}
+                className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-pink-500"
+              ></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <div className="flex items-center justify-center h-screen">
+      <BatteryLevel />
+    </div>
+  );
+}
+
+export default App;
